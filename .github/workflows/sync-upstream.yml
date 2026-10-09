@@ -1,0 +1,23 @@
+name: Upstream Sync
+
+on:
+  schedule:
+    # 每天 UTC 0 点（北京时间 8 点）自动运行
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  sync_latest_from_upstream:
+    runs-on: ubuntu-latest
+    name: Sync latest commits from upstream repo
+    steps:
+      - name: Checkout target repo
+        uses: actions/checkout@v3
+
+      - name: Sync upstream changes
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        with:
+          target_sync_branch: main
+          upstream_sync_repo: 'zouyuxuan122/dsh-our-free-model'
+          upstream_sync_branch: main
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
