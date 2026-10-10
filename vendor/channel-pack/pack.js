@@ -60235,6 +60235,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
     return member;
   };
   const pendingSmsMsgid = /* @__PURE__ */ new Map();
+  const pendingLoginFailures = /* @__PURE__ */ new Map();
   const badgePreferences = createBadgePreferenceStore(ctx);
   const autoCheckin = createAutoCheckin({
     store: createAutoCheckinStore(ctx),
@@ -60760,6 +60761,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
             refreshable: false,
             createdAt: Date.now()
           });
+          pendingLoginFailures.delete(id);
           let geminiStarted;
           try {
             geminiStarted = await gemini.startLogin();
@@ -60786,8 +60788,11 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
               // 必定下发；这里仍按凭据本体如实判定，不写死 true。
               refreshable: isGeminiRefreshable(credential)
             });
+            pendingLoginFailures.delete(id);
           }).catch((error) => {
-            ctx.logger.warn(`[channel-pack] background ${GEMINI.id} login failed for ${id}: ${String(error)}`);
+            const reason = error instanceof Error ? error.message : String(error);
+            ctx.logger.warn(`[channel-pack] background ${GEMINI.id} login failed for ${id}: ${reason}`);
+            pendingLoginFailures.set(id, reason.slice(0, 500));
             void pool.removeAccount(id).catch(() => {
             });
           });
@@ -60889,6 +60894,11 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
       }
       case "login.poll": {
         const req = payload;
+        const failure = pendingLoginFailures.get(req.accountId);
+        if (failure !== void 0) {
+          pendingLoginFailures.delete(req.accountId);
+          return { ok: true, value: { done: true, success: false, error: failure } };
+        }
         const accounts = await pool.listAllAccounts();
         const entry = accounts.find((a) => a.id === req.accountId);
         if (!entry) return { ok: true, value: { done: false } };
@@ -61594,7 +61604,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
           const values2 = await collectCreditBalances(accounts, GEMINI, {
             resolve: (ref) => ctx.credentials.resolve(ref),
             fetchBalanceDetailed: async (credential) => {
-              const { balance, error, tier } = await fetchGeminiCreditBalance(credential, GEMINI);
+              const { balance, error, tier } = await fetchGeminiCreditBalance(credential, GEMINI, { force: req.force === true });
               const extra = tier === void 0 ? void 0 : { accountTier: { label: tier.label, title: `${tier.name}\uFF08${tier.id}\uFF09` } };
               return {
                 balance,
