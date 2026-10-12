@@ -12,7 +12,9 @@
   <img alt="状态" src="https://img.shields.io/badge/status-beta-f0a441?style=flat-square">
   <br>
   <a href="https://trendshift.io/repositories/261203"><img alt="GITHUB TRENDING 第 1 名，日榜仓库" src="docs/images/trendshift-daily-laurel-gold.svg" width="250" height="55"></a>
-  <a href="https://trendshift.io/repositories/261203"><img alt="GITHUB TRENDING 第 2 名，周榜仓库" src="docs/images/trendshift-weekly-laurel-purple.svg" width="250" height="55"></a>
+  <a href="https://trendshift.io/weekly?language=JavaScript"><img alt="Trendshift JavaScript 周榜第 1 名（2026-10-05 至 2026-10-11，更新中）" src="docs/images/trendshift-weekly-2026-10-11-first-gold.svg" width="250" height="55"></a>
+  <br>
+  <sub>Trendshift JavaScript 周榜第 1 · 2026-10-05 至 2026-10-11 · 更新中，截至 2026-10-11</sub>
 
 </div>
 
@@ -30,6 +32,18 @@
 >
 > 纯插件挂载：不改内核、无构建步骤、零依赖。
 
+</div>
+
+---
+
+## 交流群
+
+<div align="center">
+  <img src="docs/images/qq-group-qr.png" alt="AI 技术交流学习群二维码" width="300">
+  <br>
+  <b>QQ 群：386179533（AI 技术交流学习群）</b>
+  <br>
+  扫码加入群聊，一起交流插件使用心得、反馈问题与分享玩法。
 </div>
 
 ---
