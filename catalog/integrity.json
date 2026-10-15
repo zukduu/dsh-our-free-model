@@ -1,5 +1,5 @@
 {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "algorithm": "sha256",
   "files": [
     {
@@ -14,8 +14,8 @@
     },
     {
       "path": "client.js",
-      "size": 452989,
-      "sha256": "df7666e53b5812ea74df754e2d318cddd09ee1bd6b9938df568d6b691ac9c125"
+      "size": 453441,
+      "sha256": "af269a805f90028a9aa66fceeb9e52225e3fa3fb24ac164be62155a8d1308f78"
     },
     {
       "path": "cordis.patch.yml",
@@ -50,7 +50,7 @@
     {
       "path": "package.json",
       "size": 2941,
-      "sha256": "65d2cf69f41f94f1cf8d2e25ee605941302dcbe39b01cd748dc13200aa22eabd"
+      "sha256": "1e6e34df59cf782f9a95c05c14f282857db28fc9b0837d57d1ac689298a26e2e"
     },
     {
       "path": "src/adapter.js",
