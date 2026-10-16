@@ -37,6 +37,18 @@
 
 ---
 
+## Community
+
+<div align="center">
+  <img src="docs/images/qq-group-qr.png" alt="AI technical discussion QQ group QR code" width="300">
+  <br>
+  <b>QQ group: 386179533（AI 技术交流学习群）</b>
+  <br>
+  Scan the QR code to join the group, discuss the plugin, report issues and share tips.
+</div>
+
+---
+
 ## Highlights
 
 - **Nothing to configure** — install, restart, pick a model. No account, no key, no quota dashboard to register on.
@@ -114,7 +126,7 @@ To install manually as a real directory, in `<DSH_HOME>/profiles/<profile>/`:
 
 1. Copy the published files into `node_modules/dsh-our-free-model/`
    (`index.js`, `client.js`, `adapter/`, `src/`, `locale/`, `icon.svg`, `cordis.patch.yml`, `package.json` — do not skip `adapter/`: `index.js` imports it on the first line)
-2. Add `"dsh-our-free-model": "2.1.0"` to `dependencies` — that number **tracks the repo's `package.json` `version`** (bump it together; 2.1.0 as of this line), never copy a stale one, and a version spec, not `link:`
+2. Add `"dsh-our-free-model": "2.3.0"` to `dependencies` — that number **tracks the repo's `package.json` `version`** (bump it together; 2.3.0 as of this line), never copy a stale one, and a version spec, not `link:`
 3. Append `"dsh-our-free-model"` to `dsh.profile.bundles`
 
 > Do **not** also add an entry to `cordis.patch.yml`. A bundle referenced from
