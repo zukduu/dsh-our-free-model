@@ -2,7 +2,7 @@
  * The recommendation page's rendering, without a browser.
  *
  * The page has one job — send the reader to a repository to press Star — so the
- * checks below are about exactly that: both cards exist, each one's star button
+ * checks below are about exactly that: every card exists, each one's star button
  * and second action point at that project's own repository, and the numbers are
  * real or absent. A missing number must leave the row out rather than print a
  * placeholder, because a page whose whole argument is "these figures are live"
@@ -15,10 +15,17 @@ import fs from 'node:fs'
 
 const source = fs.readFileSync(new URL('../client.js', import.meta.url), 'utf8')
 let record
+let picksFixture
 const react = {
-  createElement: (type, props, ...children) => ({ type, props: props ?? {}, children }),
+  createElement: (type, props, ...children) => ({
+    type, props: { ...props, ...children.length ? { children: children.length === 1 ? children[0] : children } : {} }, children,
+  }),
   Fragment: 'fragment',
-  useState: initial => [typeof initial === 'function' ? initial() : initial, () => {}],
+  useState: initial => {
+    const value = typeof initial === 'function' ? initial() : initial
+    return [picksFixture !== undefined && value?.status === 'loading'
+      ? { status: 'ready', data: { repos: picksFixture }, error: '' } : value, () => {}]
+  },
   useEffect: () => {},
   useMemo: factory => factory(),
   useCallback: fn => fn,
@@ -28,7 +35,7 @@ new Function('window', 'document', 'navigator', source)(
   { __ModuleLoader__: { load: value => { record = value } } },
   { createElement: () => ({ setAttribute() {}, style: {}, remove() {} }), head: { appendChild() {} }, body: { appendChild() {}, removeChild() {} } },
   { language: 'zh-CN' })
-const { PicksPage, RecoCard, parseSafeHtml } = record.factory(name => {
+const { PicksPage, RecoCard, parseSafeHtml, DICT } = record.factory(name => {
   if (name === 'react') return react
   if (name === 'react-dom') return { createPortal: (children, container) => ({ type: 'portal', children, container }) }
   throw new Error(`the browser half may only require react or react-dom; it asked for "${name}"`)
@@ -114,26 +121,53 @@ check('a repo whose numbers never arrived still renders its card', () => {
   assert.equal(withClass(tree, 'ofm_recostar').length, 1)
 })
 
-check('the page renders both projects and the ask', () => {
+check('the page renders all three projects and the ask', () => {
   const tree = PicksPage({ t: zh })
-  assert.equal(withClass(tree, 'ofm_recocard').length, 2)
-  assert.equal(withClass(tree, 'ofm_recostar').length, 2)
+  assert.equal(withClass(tree, 'ofm_recocard').length, 3)
+  assert.equal(withClass(tree, 'ofm_recostar').length, 3)
   const hrefs = withClass(tree, 'ofm_recostar').map(node => node.props.href)
-  assert.deepEqual(hrefs, ['https://github.com/Ebony-Vinyl/EAC-Desktop', 'https://github.com/Ebony-Vinyl/EAC-Pack'])
+  assert.deepEqual(hrefs, ['https://github.com/Ebony-Vinyl/EAC-Desktop', 'https://github.com/Ebony-Vinyl/EAC-Pack', 'https://github.com/Ebony-Vinyl/EAC-design-world'])
   assert.equal(text(tree).includes('picks.foot'), true)
 })
 
-check('the two projects are the ones the announcement names', () => {
+check('the three projects are the ones the announcement names', () => {
   const tree = PicksPage({ t: zh })
   const page = text(tree)
-  for (const name of ['EAC-Desktop', 'EAC-Pack']) assert.equal(page.includes(name), true, `${name} is on the page`)
+  for (const name of ['EAC-Desktop', 'EAC-Pack', 'EAC-design-world']) assert.equal(page.includes(name), true, `${name} is on the page`)
+})
+
+check('translated totals count only projects with real star readings', () => {
+  for (const locale of ['zh', 'en']) {
+    const t = Object.assign(key => DICT[locale][key] ?? key, { locale })
+    for (const [repos, count, total] of [
+      [[{ id: 'eac-desktop', stars: 2056 }, { id: 'eac-pack', stars: 57 }, { id: 'eac-design-world', stars: 10 }], 3, 2123],
+      [[{ id: 'eac-desktop', stars: 2056 }, { id: 'eac-pack', stars: 57 }, { id: 'eac-design-world' }], 2, 2113],
+      [[{ id: 'eac-desktop', stars: 12 }, { id: 'eac-pack', stars: 0 }, { id: 'eac-design-world', stars: NaN }], 2, 12],
+    ]) {
+      picksFixture = repos
+      const page = text(PicksPage({ t }))
+      const expected = DICT[locale]['picks.totalStars'].replace('{c}', String(count)).replace('{n}', total.toLocaleString('en-US'))
+      assert.ok(page.includes(expected), `${locale}: ${expected}`)
+      assert.ok(!page.includes('{c}') && !page.includes('{n}'))
+    }
+    for (const repos of [[], [{ id: 'eac-desktop' }], [{ id: 'eac-desktop', stars: 0 }]]) {
+      picksFixture = repos
+      const page = text(PicksPage({ t }))
+      assert.ok(!page.includes(locale === 'zh' ? '个推荐项目共' : 'stars across'))
+      assert.equal(withClass(PicksPage({ t }), 'ofm_recocard').length, 3)
+    }
+    for (const key of ['picks.sub', 'picks.foot', 'picks.totalStars']) {
+      assert.ok(!/两个|两张|\bboth\b|\btwo\b/i.test(DICT[locale][key]))
+    }
+  }
+  picksFixture = undefined
 })
 
 // The announcement is the only thing that tells users the page exists, and it is
-// published by a separate push — so it has to name the same two repositories the
+// published by a separate push — so it has to name the same repositories the
 // page renders, and its HTML has to survive the client's allowlist parser with
 // both links intact. A typo in one URL here is a broken promise, not a style nit.
-check('the shipped announcement links both projects through the sanitizer', () => {
+check('the shipped announcement links every project through the sanitizer', () => {
   const feed = JSON.parse(fs.readFileSync(new URL('../feed/announcements.json', import.meta.url), 'utf8'))
   const item = feed.announcements.find(row => row.id === '2026-10-16-picks-page')
   assert.ok(item !== undefined, 'the picks announcement is in the feed')
@@ -148,11 +182,12 @@ check('the shipped announcement links both projects through the sanitizer', () =
     for (const child of node.children ?? []) walk(child)
   }
   for (const node of parseSafeHtml(item.html)) walk(node)
-  for (const repo of ['https://github.com/Ebony-Vinyl/EAC-Desktop', 'https://github.com/Ebony-Vinyl/EAC-Pack']) {    assert.equal(hrefs.includes(repo), true, `${repo} is linked`)
+  for (const repo of ['https://github.com/Ebony-Vinyl/EAC-Desktop', 'https://github.com/Ebony-Vinyl/EAC-Pack', 'https://github.com/Ebony-Vinyl/EAC-design-world']) {
+    assert.equal(hrefs.includes(repo), true, `${repo} is linked`)
   }
   const body = words.join(' ')
-  for (const name of ['EAC-Desktop', 'EAC-Pack']) assert.equal(body.includes(name), true, `${name} is named`)
+  for (const name of ['EAC-Desktop', 'EAC-Pack', 'EAC-design-world']) assert.equal(body.includes(name), true, `${name} is named`)
 })
 
-console.log(failures === 0 ? '\npicks-ui: two cards, two working asks' : `\n${failures} check(s) failed`)
+console.log(failures === 0 ? '\npicks-ui: three cards, three working asks' : `\n${failures} check(s) failed`)
 process.exitCode = failures === 0 ? 0 : 1
