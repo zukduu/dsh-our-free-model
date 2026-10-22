@@ -33,6 +33,10 @@ export interface OpenAiChatMessage {
   content?: unknown
   tool_calls?: unknown
   tool_call_id?: unknown
+  /** DeepSeek / Qoder 思考回传。思考模式的工具轮次缺了它，上游会 400。 */
+  reasoning_content?: unknown
+  /** Cline 等客户端用的另一个思考字段名。 */
+  reasoning?: unknown
 }
 
 /**
@@ -65,10 +69,6 @@ export interface OpenAiChatRequest {
 
 export function normalizeMaxTokens(value: number | undefined, provider: string, model: string): number | undefined {
   if (value === undefined) return undefined
-  // GLM-5.2 与 DeepSeek V4 实测均会拒绝 128000，65536 可正常推理。
-  if (provider === 'codearts' && (/^deepseek-v4-(flash|pro)$/.test(model) || model === 'GLM-5.2')) {
-    return Math.min(value, 65536)
-  }
   return value
 }
 /**
@@ -103,9 +103,6 @@ export function normalizeMaxTokens(value: number | undefined, provider: string, 
  * ⚠️ 但**完全不认识的值仍然 400**（例如拼错的 `banana`）：那不是「名字不通用」，
  * 是调用方写错了。静默翻译会让拼写错误变成「档位悄悄不生效」。
  *
- * ⚠️ **CodeArts 例外**：该 provider 只有开/关两态（适配器把档位阶梯拍平了，
- * 见 `llm-adapter.ts`），任何档位名都等价，故一律二值化、永不报错。
- *
  * ## 返回值是**三态**，不可混用
  *
  * - `string`：归一化后的档位，下发它；
@@ -127,9 +124,6 @@ export function normalizeReasoningEffort(
 ): string | null | undefined {
   if (requested === undefined) return undefined
   const value = String(requested)
-  if (provider === 'codearts' && model !== undefined) {
-    return isThinkingOffEffort(value) ? 'off' : 'on'
-  }
   const record = modelInfo as { reasoning?: { efforts?: readonly { id?: unknown }[] } } | undefined
   const declared = (record?.reasoning?.efforts ?? [])
     .map((effort) => String((effort as { id?: unknown } | undefined)?.id))
@@ -272,6 +266,20 @@ export function createGatewayMessage(
   return { id: randomUUID() as Message['id'], role, content, source }
 }
 
+/**
+ * Chat 入站的思考文本。优先 `reasoning_content`，否则认 `reasoning`。
+ * 不 trim：`" "` 是 DeepSeek V4 接受的占位，trim 掉就又变成没回传。
+ */
+function inboundReasoning(value: OpenAiChatMessage): string | undefined {
+  const raw = typeof value.reasoning_content === 'string'
+    ? value.reasoning_content
+    : typeof value.reasoning === 'string'
+      ? value.reasoning
+      : undefined
+  if (raw === undefined || raw.length === 0) return undefined
+  return raw
+}
+
 function convertToolCalls(raw: unknown): Message['content'] {
   if (!Array.isArray(raw)) throw new OpenAiGatewayError('assistant.tool_calls must be an array')
   return raw.map((value) => {
@@ -315,7 +323,14 @@ async function convertMessage(
   }
   if (role === 'assistant') {
     const text = textFromContent(value.content)
-    const content: Message['content'] = text.length > 0 ? [{ type: 'text', text }] : []
+    const content: Message['content'] = []
+    // 思考模式（DeepSeek V4 等）要求：带 tool_calls 的历史助手消息必须把
+    // 当时的 reasoning_content 原样带回。丢掉它，下一跳就是
+    // 「The reasoning_content in the thinking mode must be passed back」。
+    // 空串不算（上游把空串也当成没回传）；单个空格是客户端用来占位的合法值，保留。
+    const reasoning = inboundReasoning(value)
+    if (reasoning !== undefined) content.push({ type: 'reasoning', text: reasoning })
+    if (text.length > 0) content.push({ type: 'text', text })
     if (value.tool_calls !== undefined) content.push(...convertToolCalls(value.tool_calls))
     return createGatewayMessage('assistant', content, { kind: 'model', provider, model })
   }
