@@ -31,11 +31,13 @@ if (!['all', 'contributor', 'release'].includes(options.mode)) {
   process.exit(1)
 }
 const { mode, only } = options
-const releaseSuites = new Set(['manifest', 'release', 'catalog'])
+const releaseSuites = new Set(['manifest', 'release', 'catalog', 'legacy-upgrade', 'engine-payload'])
 
 const suites = [
   ['manifest', 'build-manifest.mjs', ['--check']],
   ['release', 'release-e2e.mjs', []],
+  ['legacy-upgrade', 'legacy-upgrade-test.mjs', mode === 'contributor' ? [] : ['--production']],
+  ['engine-payload', 'engine-payload-test.mjs', []],
   ['release-preparation', 'release-preparation-test.mjs', []],
   ['client-lint', 'client-lint.mjs', []],
   ['sponsor', 'sponsor-test.mjs', []],
@@ -68,6 +70,7 @@ const suites = [
   ['turn-accounting', 'turn-accounting-test.mjs', []],
   ['chan-relay', 'chan-relay-test.mjs', []],
   ['channel-pack', 'channel-pack-test.mjs', []],
+  ['channel-pack-gate', 'channel-pack-gate-test.mjs', []],
   ['channel-source', 'channel-pack-test.mjs', ['--source', '--channels-only']],
   ['channel-network', 'channel-network-test.mjs', []],
   ['channel-credits-rpc', 'channel-credits-rpc-test.mjs', []],
@@ -79,6 +82,7 @@ const suites = [
   ['forward-boot', 'forward-boot-test.mjs', []],
   ['standalone', 'standalone-test.mjs', []],
   ['desktop', 'desktop-test.mjs', []],
+  ['desktop-update', 'desktop-update-test.mjs', []],
   ['standalone-desktop-regression', 'standalone-desktop-regression-test.mjs', []],
   ['standalone-page-lifecycle', 'standalone-page-lifecycle-test.mjs', []],
   ['standalone-management', 'standalone-management-test.mjs', []],
@@ -91,6 +95,9 @@ const suites = [
   ['standalone-settings-host', 'standalone-settings-host-test.mjs', []],
   ['standalone-login-terminal', 'standalone-login-terminal-test.mjs', []],
   ['standalone-package', 'standalone-package-test.mjs', ['--sources-only']],
+  ['bun-fetch', 'bun-fetch-test.mjs', []],
+  ['free-lane-compat', 'free-lane-compat-test.mjs', []],
+  ['stable-session', 'stable-session-test.mjs', []],
   ['egress', 'egress-test.mjs', []],
   ['egress-availability', 'egress-availability-test.mjs', []],
   ['effort', 'effort-test.mjs', []],
@@ -137,6 +144,8 @@ const suites = [
   ['bench-integration', 'bench-integration-test.mjs', []],
   ['plugin-bench-ui', 'plugin-bench-ui-test.mjs', []],
   ['gateway-source', 'gateway-source-test.mjs', []],
+  ['gateway-disconnect', 'gateway-disconnect-test.mjs', []],
+  ['standalone-nav', 'standalone-nav-test.mjs', []],
 ].filter(([name]) => (mode === 'contributor' ? !['manifest', 'release'].includes(name)
   : mode === 'release' ? releaseSuites.has(name) : true)
   && (only === null || name.startsWith(only)))
@@ -166,6 +175,9 @@ function runSuite(script, args) {
   return new Promise(resolve => {
     const child = spawn(process.execPath, [path.join(scriptsDir, script), ...args], {
       stdio: ['ignore', 'pipe', 'pipe'],
+      // Offline suites mock Node fetch. The Bun protocol has its own loopback
+      // tests; never let an existing mock accidentally send a live request.
+      env: { ...process.env, OUR_FREE_MODEL_FREE_TRANSPORT: 'node' },
     })
     let stdout = ''
     let stderr = ''
