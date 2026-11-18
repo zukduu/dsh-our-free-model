@@ -1,8 +1,8 @@
 {
-  "version": "2.8.5",
+  "version": "2.8.6",
   "base": "../",
-  "publishedAt": "2026-11-15T03:18:58.427Z",
-  "notes": "",
+  "publishedAt": "2026-11-18T02:24:18.746Z",
+  "notes": "重写请求适配、工具输出压缩、本地应答和失败分类，重建供应商目录并保留旧ID及配置。历史模型可能退役或被上游回落，不自动换模型。社区桥需单独迁移；详见2.8.6说明。",
   "files": [
     {
       "path": "adapter/dsh-llm.d.ts",
@@ -31,13 +31,13 @@
     },
     {
       "path": "index.js",
-      "size": 142965,
-      "sha256": "2de88e911c9e8317c4dd38232471c03c1f118336e080cf87b8b70992016ffdf9"
+      "size": 143309,
+      "sha256": "d460f03f7fef4183174108734b7036c203b1886bd63be799bc5c7059817797df"
     },
     {
       "path": "LICENSE",
-      "size": 1068,
-      "sha256": "4d5f97c83545b2159926df06d3210a266d2b7f900e27f7b3e8e576caf753e828"
+      "size": 2242,
+      "sha256": "5b00d8a4ca8071523249cd19a2c88dd1c8d703013c4041bb2c279c4189616a66"
     },
     {
       "path": "locale/en.json",
@@ -51,8 +51,8 @@
     },
     {
       "path": "package.json",
-      "size": 5208,
-      "sha256": "bd96d8ae7431a07d0012e9ed0661aac78fcb1b2134bacf1847ac63e18d2ca461"
+      "size": 5263,
+      "sha256": "83f3086d1c2292bdeaad13878bc8582b9434d3e2dd6515e6dd758fc05d18901c"
     },
     {
       "path": "src/adapter.js",
@@ -96,8 +96,8 @@
     },
     {
       "path": "src/core.js",
-      "size": 36039,
-      "sha256": "6b5c0b19ae9c156ef2d6a60def5f8cdafa7b3195a1fa9299f69fdfcdb5a290e2"
+      "size": 36087,
+      "sha256": "9e528edf0fb83f6cde795f871018897e8838f55d1d0c5e93e8d6a5125b6d95c5"
     },
     {
       "path": "src/deferred-response.js",
@@ -121,8 +121,8 @@
     },
     {
       "path": "src/eac.js",
-      "size": 18722,
-      "sha256": "3b250bd8f689a1d2fc95a704d1ec4b9c32cd257a306bb64f6e62cd9045b42503"
+      "size": 18435,
+      "sha256": "846423f1316ef18da4c7f857a9f0033a9410deefd206df326b4e0701a0477e22"
     },
     {
       "path": "src/effort.js",
@@ -131,8 +131,8 @@
     },
     {
       "path": "src/egress.js",
-      "size": 52017,
-      "sha256": "4f32d0db1861165d77b3f8c38d9926b9461e96545077cbaa63230863b0ec2935"
+      "size": 52024,
+      "sha256": "e046b395b0b9dc1ba2dbbfa85654ac18d235763980588fc0dc966fb816dc0c32"
     },
     {
       "path": "src/engine-parts/win32-x64.000.part",
@@ -191,8 +191,8 @@
     },
     {
       "path": "src/forward.js",
-      "size": 64454,
-      "sha256": "7f0d6fa748985bda19eb6536d444eea5151ac243a33f6b2883292d249867e1b6"
+      "size": 68667,
+      "sha256": "6f9205c503e3ff39da7a3be8163bc575afb8c528cd4e1b9f5263b750da93255f"
     },
     {
       "path": "src/gemini.js",
@@ -216,8 +216,8 @@
     },
     {
       "path": "src/local-optimize.js",
-      "size": 17562,
-      "sha256": "9cda533778c6d91090180d6dad3d861d21c1f484bb371bf3f69de0f3653f5fb2"
+      "size": 6898,
+      "sha256": "b7d07a15f547fbc1eceed771d2dead0f8887a7ad6bd1f4c844fbdc5642ff2717"
     },
     {
       "path": "src/loopback-fetch.js",
@@ -241,8 +241,8 @@
     },
     {
       "path": "src/messages.js",
-      "size": 19185,
-      "sha256": "217fd90273824f135ed0b5417c8ea48089f5f78cdcf2cc6436008cb017997421"
+      "size": 22391,
+      "sha256": "f49d952e2283c5d4b2afbf6b0f29d8bffca8cd9c6ae0584b6f7d58556ae8b749"
     },
     {
       "path": "src/model-test.js",
@@ -251,8 +251,8 @@
     },
     {
       "path": "src/o2a.js",
-      "size": 59531,
-      "sha256": "fb6475bbb2f308250537b09c41892378294eeb298a018dbaa911495a8d814afb"
+      "size": 32188,
+      "sha256": "65e3805db556b61dfd61c2d881433a577b137c6aec1a5753d7abe7bbd3bbdd25"
     },
     {
       "path": "src/open-external.js",
@@ -276,13 +276,13 @@
     },
     {
       "path": "src/providers/index.js",
-      "size": 9780,
-      "sha256": "f8a08a3520f0ed71aafac891eb96ddd26b50a53f9a5d2738e1994afe031af578"
+      "size": 9785,
+      "sha256": "a294b96d5cadb99e8c71293a255add117ac54f528e02a7b8e92579833c0d09ef"
     },
     {
       "path": "src/providers/registry.json",
-      "size": 127050,
-      "sha256": "13fe0a60438465cf5c3440f411aefd707804229584bcda8e73951d13dc8948f5"
+      "size": 137887,
+      "sha256": "234102ceda21c1b673ca41c60749a65858da65495c816a06ecfc7564eed90ce3"
     },
     {
       "path": "src/push.js",
@@ -301,8 +301,8 @@
     },
     {
       "path": "src/route/classify.js",
-      "size": 28738,
-      "sha256": "9123be50f8284a9a8735abac7c0e541e726fdfdce1de9aab841e4e5bbe348e17"
+      "size": 10482,
+      "sha256": "713b1acd60639900b3a21c99e5925744d51a28c2adbcf49b56e8be7ba9023c52"
     },
     {
       "path": "src/semver.js",
@@ -336,8 +336,8 @@
     },
     {
       "path": "src/token-saver.js",
-      "size": 45049,
-      "sha256": "d2b5e9fe295657fe1cd276f33c8fbb24c541a3fdc70c6adf4bd4f4fa1ef8e830"
+      "size": 36560,
+      "sha256": "5386b54ffe224e28ee1ec355618bcd015f7b691a476662058e70b507b9c21d90"
     },
     {
       "path": "src/trust.js",
@@ -351,8 +351,8 @@
     },
     {
       "path": "src/upstream.js",
-      "size": 25718,
-      "sha256": "af686d1c27293b51f47727551de52f7e8101afb2b29bfa6778768bfc10aa8b30"
+      "size": 20968,
+      "sha256": "4ba4b634c5d5cad6425879290a5364b076abeff456ce96ba81d2cfbfdcb7d116"
     },
     {
       "path": "src/vault-anchor.js",
@@ -381,8 +381,8 @@
     },
     {
       "path": "vendor/channel-pack/pack.js",
-      "size": 2847331,
-      "sha256": "df0047685e14d1e4f75aa16f07e6f26258d991c923ff40f199dbb453c0096fd6"
+      "size": 2847715,
+      "sha256": "5cdc0fec92787eba99ae07490451fc60be8c795960ec41247c736ae790e58937"
     },
     {
       "path": "vendor/channel-pack/qoder-auth-wasm.wasm",
@@ -405,5 +405,5 @@
       "sha256": "0d4659c87afb6fa01dd291ae32e1d759cd248126eb95e392753ce3a4c48c3560"
     }
   ],
-  "signature": "mLVd1nVL9jVl8adl9SLgT34LwD/o22PEU87UypJfxoZlrPnJgx7kJRUM9Q8WUFoNSQWOSW6XGW0qUtmjqenqAQ=="
+  "signature": "zyoEnvxqwK/xt41pMhcZvl6PMHh2KlNuiicaAT7bypyfwbrTdnY/WbN06U30ucPKpVyJH6B3Z8zX8onPQ/rJBQ=="
 }
